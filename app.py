@@ -3,25 +3,28 @@ import threading
 from flask import Flask
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 # =====================
-# DISCORD BOT
+# DISCORD BOT (SEM INTENTS PRIVILEGIADOS)
 # =====================
 TOKEN = os.getenv("TOKEN")
 
 intents = discord.Intents.default()
-intents.message_content = True
 
-bot = commands.Bot(command_prefix="/", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
+    await bot.tree.sync()
     print("Bot Free Fire Like iniciado com sucesso!")
 
-# EXEMPLO DE COMANDO (teste)
-@bot.command()
-async def ping(ctx):
-    await ctx.send("Pong!")
+# =====================
+# SLASH COMMAND
+# =====================
+@bot.tree.command(name="ping", description="Teste se o bot está online")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message("🏓 Pong! Bot online 24h")
 
 # =====================
 # FLASK KEEP ALIVE
