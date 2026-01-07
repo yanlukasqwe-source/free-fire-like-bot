@@ -1,43 +1,34 @@
-import os
 import discord
 from discord.ext import commands
-from flask import Flask
-import threading
-import asyncio
+from discord import app_commands
+import os
 
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN") or "COLOQUE_SEU_TOKEN_AQUI"
 
 intents = discord.Intents.default()
-intents.message_content = True
 
-bot = commands.Bot(command_prefix="/", intents=intents)
+class MyBot(commands.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix="!",
+            intents=intents
+        )
+
+    async def setup_hook(self):
+        await self.tree.sync()
+        print("✅ Slash commands sincronizados")
+
+bot = MyBot()
 
 @bot.event
 async def on_ready():
-    print(f"✅ Bot conectado como {bot.user}")
-    try:
-        synced = await bot.tree.sync()
-        print(f"🔄 Slash commands sincronizados: {len(synced)}")
-    except Exception as e:
-        print(e)
+    print(f"🤖 Bot ligado como {bot.user}")
 
-async def load_cogs():
-    await bot.load_extension("cogs.like_commands")
+@bot.tree.command(name="perfil", description="Mostra seu perfil")
+async def perfil(interaction: discord.Interaction):
+    await interaction.response.send_message(
+        "👤 **Seu perfil**\n❤️ Likes: 0",
+        ephemeral=False
+    )
 
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Bot online 24h"
-
-def run_flask():
-    app.run(host="0.0.0.0", port=10000)
-
-threading.Thread(target=run_flask).start()
-
-async def main():
-    async with bot:
-        await load_cogs()
-        await bot.start(TOKEN)
-
-asyncio.run(main())
+bot.run(TOKEN)
